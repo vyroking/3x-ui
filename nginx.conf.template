@@ -1,0 +1,42 @@
+worker_processes 1;
+events { worker_connections 1024; }
+
+http {
+    server {
+        listen ${NGINX_PORT};
+
+        # مسیر پنل وب (فوروارد به پورت داخلی 2053 که x-ui روش گوش می‌ده)
+        location /managepanel/ {
+            proxy_pass http://127.0.0.1:2053/managepanel/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # مسیر Subscription (ساب لینک) - فوروارد به پورت داخلی 2096
+        location /sub/ {
+            proxy_pass http://127.0.0.1:2096/sub/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # هر مسیر دیگه (اینباند VLESS/WebSocket) به پورت داخلی 8080
+        location / {
+            proxy_pass http://127.0.0.1:8080;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
